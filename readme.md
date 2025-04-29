@@ -2,79 +2,99 @@
 
 ## 🐋 Working with Podman
 
-### 🔍 Search for the `httpd` image
+### 1️⃣ Install the Podman package (as root)
+```bash
+sudo apt update && sudo apt install -y podman
+```
+
+### 2️⃣ Create the `webadmin` user with the password "web" (as root)
+```bash
+sudo useradd -m webadmin
+echo "web:web" | sudo chpasswd
+```
+
+### 3️⃣ Connect via SSH to the `webadmin` account
+```bash
+ssh webadmin@localhost
+```
+
+### 4️⃣ Search for all `httpd` images (as `webadmin`)
 ```bash
 podman search httpd
 ```
 
-### 📥 Pull the `httpd` image
+### 5️⃣ Pull the `httpd` image (as `webadmin`)
 ```bash
 podman pull docker.io/library/httpd
 ```
 
-### 📋 List available images
+### 6️⃣ List available images (as `webadmin`)
 ```bash
 podman images
 ```
 
-### 🔎 Inspect the image
+### 7️⃣ Inspect the `httpd` image (as `webadmin`)
 Replace `<IMAGE_ID>` with the actual image ID:
 ```bash
 podman inspect <IMAGE_ID>
 ```
 
-### 🚀 Run a container with the `httpd` image
+### 8️⃣ Run a rootless container with the `httpd` image (as `webadmin`)
 ```bash
+mkdir -p /home/webadmin/web
 podman run -d --name web -p 8081:80 -v /home/webadmin/web:/usr/local/apache2/htdocs:Z httpd
 ```
 
-### 📂 List running containers
+### 9️⃣ List created and active containers (as `webadmin`)
 ```bash
 podman ps
 ```
 
-### 📂 List all containers (including stopped ones)
-```bash
-podman ps -a
-```
-
-### ⏹️ Stop a container
-Replace `<CONTAINER_ID>` with the actual container ID:
-```bash
-podman stop <CONTAINER_ID>
-```
-
-### 🗑️ Remove a container
-Replace `<CONTAINER_ID>` with the actual container ID:
-```bash
-podman rm <CONTAINER_ID>
-```
-
 ## 📁 Managing Web Content
 
-### 📂 Create a directory for web content
-```bash
-mkdir -p /home/webadmin/web
-```
-
-### ✏️ Add content to the web server
+### 🔟 Create a web page named `index.html` in the container (as `webadmin`)
 ```bash
 echo "Bonjour Tekup" > /home/webadmin/web/index.html
 ```
 
 ## 🛠️ Container Maintenance
 
-### 🐚 Access the container's shell
+### 1️⃣1️⃣ Generate a systemd service for the container (as `webadmin`)
 ```bash
-podman exec -it web /bin/bash
+podman generate systemd --name web --files --new
+mv container-web.service ~/.config/systemd/user/
 ```
 
-### 🔄 Enable lingering for the `webadmin` user
+### 1️⃣2️⃣ Start and enable the service at boot (as `webadmin`)
 ```bash
-loginctl enable-linger webadmin
+systemctl --user enable container-web.service
+systemctl --user start container-web.service
 ```
 
-### 📜 Check logs for the container service
+### 1️⃣3️⃣ Test the `index.html` page in your browser or locally
+Access `http://localhost:8081` in your browser or use:
 ```bash
-journalctl | grep container-web.service
+curl http://localhost:8081
+```
+
+### 1️⃣4️⃣ Reboot and test the systemd service (as root)
+```bash
+sudo reboot
+```
+After reboot, verify the service:
+```bash
+sudo systemctl status container-web.service
+```
+
+### 1️⃣5️⃣ Remove the container (as `webadmin`)
+Replace `<CONTAINER_ID>` with the actual container ID:
+```bash
+podman stop <CONTAINER_ID>
+podman rm <CONTAINER_ID>
+```
+
+### 1️⃣6️⃣ Remove the `httpd` image (as `webadmin`)
+Replace `<IMAGE_ID>` with the actual image ID:
+```bash
+podman rmi <IMAGE_ID>
 ```
