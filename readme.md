@@ -81,9 +81,9 @@ curl http://localhost:8081
 ```bash
 sudo reboot
 ```
-After reboot, verify the service:
+After reboot, verify the server (as root):
 ```bash
-sudo systemctl status container-web.service
+curl http://localhost:8081
 ```
 
 ### 1️⃣5️⃣ Remove the container (as `webadmin`)
